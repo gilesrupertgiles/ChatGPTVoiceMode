@@ -1,0 +1,149 @@
+Adaptive Response-Gate Classification for Spoken Human–AI Conversation
+
+This concept proposes a dual-pipeline voice-interaction architecture for more realistic and user-supportive AI conversation.
+
+###
+
+Current voice assistants are excellent at recognising speech, but they often struggle with conversational timing. They may interrupt users too early, ignore meaningful corrections, or fail to recognise when a partial utterance is actually an important attempt to redirect the conversation.
+
+This project was inspired by the idea that spoken conversation is governed by more than speech recognition alone. Human dialogue depends upon contextual judgement, communicative intent, conversational precedence, timing, and relevance. We wanted to investigate whether a lightweight local classification system could improve conversational turn-taking by evaluating not only what was said, but whether it deserved to interrupt, redirect, or modify the assistant's response.
+
+###
+
+Dualistic – Relativistically Enhanced Vocal Exchanges introduces a conversational decision layer that operates alongside automatic speech recognition.
+
+Incoming speech is analysed through multiple contextual classifiers—including Pertinence, Prevalence, and Precedence—to determine the communicative importance, contextual relevance, and relationship to previous discourse. Confidence modifiers further evaluate speech reliability, timing, prosody, and contextual agreement before a response gate selects an appropriate conversational action.
+
+Rather than treating every detected voice packet equally, the system decides whether to ignore, monitor, retain, interrupt, clarify, repair, resume, or respond. This enables more natural dialogue, reduces premature interruptions, preserves fragmented communication, and allows users to interject corrections or clarifications without unnecessarily restarting the entire conversation.
+
+The long-term goal is to provide a more human-like conversational experience through intelligent turn-taking and adaptive dialogue management while preserving privacy through local or lightweight distributed classification.
+
+###
+
+The architecture was designed as a dual-pipeline conversational system.
+
+The first pipeline manages continuous microphone capture, voice activity detection, timed buffering, speech segmentation, and ASR packet generation.
+
+The second pipeline performs conversational judgement by analysing each recognised speech packet using three primary classifiers:
+
+• Pertinence — directed communicative importance.
+• Prevalence — relevance to the active conversational context.
+• Precedence — relationship to previous discourse, corrections, or overrides.
+
+Additional confidence modifiers—including verbatim confidence, phonosonic confidence, timing confidence, conjunctive confidence, residual/prosidual confidence, and consensus confidence—combine to produce a contextual confidence score before a conversational response gate determines the most appropriate action.
+
+The design intentionally separates speech recognition from conversational reasoning, allowing the dialogue manager to make more context-aware decisions without requiring changes to the underlying ASR engine.
+
+
+###
+
+Designing a conversational control layer independent of the ASR engine.
+Introducing the Pertinence, Prevalence, and Precedence classifier framework.
+Developing a structured response-gating model that supports interruption, clarification, repair, and conversational resumption.
+Focusing on human conversational behaviour rather than speech recognition accuracy alone.
+Creating a framework that could be applied to voice assistants, accessibility technologies, educational systems, AI companions, and future agentic interfaces.
+
+###
+
+
+Pipeline 1 handles vocal capture: continuous microphone input, voice activity detection, timed buffering, ASR packet construction, pause handling, and utterance finalisation.
+
+Pipeline 2 handles conversational judgement: each ASR packet is evaluated through three primary classifiers:
+
+Pertinence — whether the utterance has directed communicative importance, such as an attempt to address, interrupt, correct, command, clarify, or influence the assistant.
+
+Prevalence — whether the utterance belongs to the current conversational subject, active response, or immediate discourse flow.
+
+Precedence — whether the utterance refers back, corrects, overrides, restores, or repairs something previously said.
+
+These classifiers are supported by confidence modifiers: verbatim confidence, phonosonic confidence, timing confidence, conjunctive confidence, residual/prosidual confidence, and consensus confidence.
+
+The response gate then selects an action such as ignore, monitor, retain, interrupt, repute, clarify, resume, or respond.
+
+The purpose is to improve spoken AI interaction by reducing premature interruption, avoiding missed user corrections, preserving fragmented communication, and allowing users with varied speech timing or formulation styles to communicate more naturally.
+
+The system is not merely a speech-recognition pipeline. It is a conversational control layer that decides when an AI should continue, pause, yield, clarify, repair, or respond based on communicative force, contextual relevance, prior-discourse relation, and confidence.
+
+Potential use cases include voice assistants, accessibility systems, educational conversation tools, AI companions, speech-rehabilitation support, multimodal agents, and safer agentic interfaces where user interruption and correction must be respected.
+
+
+- - - -
+
+Three main classifiers:
+Pertinence — directed communicative importance
+Prevalence — current-context relation
+Precedence — prior-context / correction / override relation
+
+Confidence modifiers:
+verbatim confidence
+phonosonic confidence
+timing confidence
+conjunctive confidence
+residual/prosidual confidence
+
+Gate actions:
+ignore
+monitor
+retain
+interrupt
+repute
+clarify
+
+| Current state     | Input condition                          | Classifier / modifier relationship                           | Next state           | Response action                                                  |
+| ----------------- | ---------------------------------------- | ------------------------------------------------------------ | -------------------- | ---------------------------------------------------------------- |
+| RECEIVE           | New ASR packet                           | Unclassified communication input                             | CLASSIFYING          | Preserve assistant-output position and register packet timing    |
+| CLASSIFYING       | Low pertinence and low prevalence        | Probable background speech or non-directed vocalisation      | IGNORE               | Continue output unchanged                                        |
+| CLASSIFYING       | Low pertinence with uncertain confidence | Weak communicative value but possible relevance              | MONITOR              | Continue output while retaining briefly                          |
+| CLASSIFYING       | Moderate pertinence and high prevalence  | Contextual contribution to current discourse                 | RETAIN               | Continue output, then respond at a suitable boundary             |
+| CLASSIFYING       | High pertinence and high prevalence      | Clear present communicative attempt                          | INTERRUPT_PENDING    | Reduce, pause, or prepare to yield output                        |
+| CLASSIFYING       | High pertinence and high precedence      | Correction, override, prior-reference, or discourse repair   | REPUTE               | Stop or pause current output and re-evaluate response direction  |
+| CLASSIFYING       | High pertinence with low confidence      | Relevant but uncertain communication                         | CLARIFY              | Pause and request resolution or additional information           |
+| CLASSIFYING       | High prevalence and moderate precedence  | Related to current topic and linked to prior discourse       | RETAIN_PRECEDENT     | Hold for response integration or delayed correction              |
+| CLASSIFYING       | Low prevalence and high precedence       | Prior correction or reference not aligned with current topic | REPUTE_PENDING       | Check whether previous discourse should be restored or revised   |
+| MONITOR           | Further speech increases pertinence      | Communicative attempt strengthening                          | CLASSIFYING          | Re-run classifier aggregation                                    |
+| MONITOR           | No further speech before expiry          | Insufficient communicative continuation                      | IGNORE               | Clear retained packet and continue output                        |
+| INTERRUPT_PENDING | Attempt persists                         | Sustained pertinence and communicative pressure              | INTERRUPT            | Stop assistant output and capture user communication             |
+| INTERRUPT_PENDING | Attempt disappears                       | Insufficient pertinence duration                             | RESUME               | Restore previous output or continue from last stable point       |
+| RETAIN            | Assistant reaches clause boundary        | Deferred prevalence remains high                             | RESPOND              | Address retained input after current clause or thought           |
+| RETAIN_PRECEDENT  | Prior relation remains useful            | Prevalence and precedence both support integration           | RESPOND_WITH_CONTEXT | Respond while referencing the relevant prior discourse           |
+| REPUTE_PENDING    | Precedence confirmed                     | Prior discourse should be reconsidered                       | REPUTE               | Re-evaluate, restate, correct, or repair current response        |
+| REPUTE            | Correction or repair accepted            | Pertinence and precedence agreement                          | RECOMPOSE            | Generate altered response without unnecessary full reorientation |
+| CLARIFY           | Additional speech resolves uncertainty   | Confidence modifiers improve                                 | RECLASSIFY           | Re-run classifier aggregation                                    |
+| CLARIFY           | Uncertainty remains after timeout        | Confidence remains insufficient                              | RETAIN_OR_DISCARD    | Store as fragment or discard based on usefulness                 |
+| RECLASSIFY        | Updated packet available                 | Revised classifier values                                    | CLASSIFYING          | Re-enter classification with new evidence                        |
+| RESPOND           | Retained input addressed                 | Response completed                                           | RECEIVE              | Return to packet reception                                       |
+| INTERRUPT         | User capture completed                   | New utterance packet formed                                  | RECEIVE              | Send new ASR packet into classification                          |
+| IGNORE            | Input cleared                            | No relevant communicative value retained                     | RECEIVE              | Await next packet                                                |
+| RESUME            | Output restored                          | Prior assistant state remains valid                          | RECEIVE              | Continue monitoring for new input                                |
+
+Core classifiers:
+
+| Classifier | Function                                                                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pertinence | Measures directed communicative importance: whether the user is attempting to address, interrupt, correct, command, clarify, or influence the assistant. |
+| Prevalence | Measures current-context relation: whether the utterance belongs to the active subject, current response, or immediate conversational flow.              |
+| Precedence | Measures prior-discourse force: whether the utterance refers back, corrects, overrides, restores, or repairs something previously said.                  |
+
+Supporting confidence modifiers:
+
+| Modifier                        | Function                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| Verbatim confidence             | Reliability of the ASR wording.                                                         |
+| Phonosonic confidence           | Clarity, vocal force, urgency, emphasis, volume procession, and prosodic signal.        |
+| Timing confidence               | Whether pauses, continuation, or interruption timing support the classification.        |
+| Conjunctive confidence          | Strength of connection between the utterance and surrounding verbal information.        |
+| Residual / prosidual confidence | Relation between what is newly said and what remains from prior conversational context. |
+| Consensus confidence            | Degree of agreement between classifiers and modifiers before the gate acts.             |
+
+Gate actions:
+
+| Gate action | Meaning                                                                                                   |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| IGNORE      | Continue without response because communicative value is too low.                                         |
+| MONITOR     | Continue listening while retaining the packet briefly.                                                    |
+| RETAIN      | Store relevant input for response at a suitable boundary.                                                 |
+| INTERRUPT   | Stop assistant output because the user’s communicative attempt is strong and persistent.                  |
+| REPUTE      | Re-evaluate, repair, restate, correct, or recompose without unnecessarily abandoning the whole discourse. |
+| CLARIFY     | Ask for resolution when communication appears important but confidence remains insufficient.              |
+| RESUME      | Continue the previous output after a failed or insufficient interruption attempt.                         |
+| RESPOND     | Address retained input after the assistant reaches a natural response boundary.                           |
